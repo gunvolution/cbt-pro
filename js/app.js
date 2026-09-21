@@ -1,20 +1,26 @@
 /**
- * CBT EXAM MANAGEMENT SYSTEM - FRONTEND ENGINE
+ * CBT EXAM MANAGEMENT SYSTEM - FRONTEND ENGINE (ROBUST FIX)
  */
 
-// 1. SUPABASE CLIENT INITIALIZATION
-// Catatan: Ganti placeholder ini dengan project Supabase milik Anda.
-const SUPABASE_URL = "https://imsbttuspulpxmavlyop.supabase.co";
+// 1. SAFE SUPABASE INITIALIZATION
+const SUPABASE_URL = "https:imsbttuspulpxmavlyop.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_jQP1zqYtScbWVhhQWl0lAQ_Tm6x5Zno";
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let supabase = null;
+try {
+  if (window.supabase && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_SUPABASE")) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch (err) {
+  console.warn("Supabase belum dikonfigurasi, beralih ke mode offline/demo:", err);
+}
 
 // APP STATE
 let currentUser = null;
 let activeSessionTimer = null;
 let currentExamSession = null;
 
-// FALLBACK IN-MEMORY STORAGE (Jika belum terhubung ke Supabase)
+// IN-MEMORY STORAGE (DEMO DATA)
 let dbFallback = {
   classes: [
     { id: 1, name: 'X-MIPA-1' },
@@ -40,20 +46,19 @@ let dbFallback = {
 };
 
 // ==========================================
+// AUTH CONTROLLER
 // ==========================================
-// AUTH CONTROLLER (REVISED & ROBUST)
-// ==========================================
-
 function handleLogin(e) {
-  if (e && e.preventDefault) {
+  if (e) {
     e.preventDefault();
+    e.stopPropagation();
   }
 
   const usernameInput = document.getElementById('login-username');
   const passwordInput = document.getElementById('login-password');
 
   if (!usernameInput || !passwordInput) {
-    alert('Elemen form login tidak ditemukan!');
+    alert('Form login belum termuat sempurna.');
     return false;
   }
 
@@ -61,32 +66,28 @@ function handleLogin(e) {
   const password = passwordInput.value.trim();
 
   if (!username || !password) {
-    alert('Mohon isi Username dan Password terlebih dahulu.');
+    alert('Silakan isi Username dan Password.');
     return false;
   }
 
-  // Cari user pada data lokal/fallback
   const user = dbFallback.users.find(
     u => u.username.toLowerCase() === username.toLowerCase() && u.password === password
   );
 
   if (!user) {
-    alert('Gagal Masuk: Username atau Password tidak cocok dengan data demo.');
+    alert('Username atau Password salah!\n\nDemo Akun:\nAdmin: admin / admin123\nPengawas: pengawas01 / pass123\nSiswa: 2026001 / siswa123');
     return false;
   }
 
-  // Set pengguna aktif
   currentUser = user;
   setupSessionView();
   return false;
 }
 
 function setupSessionView() {
-  // Sembunyikan form login
-  const viewLogin = document.getElementById('view-login');
-  if (viewLogin) viewLogin.style.display = 'none';
+  const loginView = document.getElementById('view-login');
+  if (loginView) loginView.style.display = 'none';
 
-  // Tampilkan navigasi akun
   const actions = document.getElementById('auth-actions');
   if (actions) actions.style.display = 'flex';
 
@@ -95,7 +96,6 @@ function setupSessionView() {
   if (infoEl) infoEl.innerText = currentUser.full_name;
   if (roleEl) roleEl.innerText = currentUser.role.toUpperCase();
 
-  // Alihkan tampilan berdasarkan peran
   if (currentUser.role === 'admin') {
     const vAdmin = document.getElementById('view-admin');
     if (vAdmin) vAdmin.style.display = 'block';
@@ -110,6 +110,27 @@ function setupSessionView() {
     renderStudentView();
   }
 }
+
+function logout() {
+  currentUser = null;
+  if (activeSessionTimer) clearInterval(activeSessionTimer);
+
+  const views = ['view-admin', 'view-proctor', 'view-student'];
+  views.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  const actions = document.getElementById('auth-actions');
+  if (actions) actions.style.display = 'none';
+
+  const loginView = document.getElementById('view-login');
+  if (loginView) loginView.style.display = 'flex';
+
+  const form = document.getElementById('form-login');
+  if (form) form.reset();
+}
+
 // ==========================================
 // ADMIN MODULE
 // ==========================================
@@ -117,8 +138,11 @@ function switchAdminTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
   
-  if (event) event.target.classList.add('active');
-  document.getElementById(`tab-${tabName}`).style.display = 'block';
+  if (window.event && window.event.target) {
+    window.event.target.classList.add('active');
+  }
+  const tab = document.getElementById(`tab-${tabName}`);
+  if (tab) tab.style.display = 'block';
 
   if (tabName === 'print-center') populatePrintOptions();
 }
@@ -132,6 +156,7 @@ function renderAdminData() {
 
 function renderClasses() {
   const tbody = document.getElementById('tbody-classes');
+  if (!tbody) return;
   tbody.innerHTML = '';
   dbFallback.classes.forEach((c, i) => {
     tbody.innerHTML += `
@@ -145,10 +170,11 @@ function renderClasses() {
 }
 
 function addClass() {
-  const name = document.getElementById('input-class-name').value.trim();
+  const input = document.getElementById('input-class-name');
+  const name = input ? input.value.trim() : '';
   if (!name) return alert('Nama kelas tidak boleh kosong');
   dbFallback.classes.push({ id: Date.now(), name });
-  document.getElementById('input-class-name').value = '';
+  if (input) input.value = '';
   renderClasses();
 }
 
@@ -161,6 +187,7 @@ function deleteClass(id) {
 
 function renderRooms() {
   const tbody = document.getElementById('tbody-rooms');
+  if (!tbody) return;
   tbody.innerHTML = '';
   dbFallback.rooms.forEach((r, i) => {
     tbody.innerHTML += `
@@ -175,11 +202,13 @@ function renderRooms() {
 }
 
 function addRoom() {
-  const name = document.getElementById('input-room-name').value.trim();
-  const capacity = parseInt(document.getElementById('input-room-capacity').value) || 30;
+  const nameInput = document.getElementById('input-room-name');
+  const capInput = document.getElementById('input-room-capacity');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const capacity = capInput ? parseInt(capInput.value) || 30 : 30;
   if (!name) return alert('Nama ruang wajib diisi');
   dbFallback.rooms.push({ id: Date.now(), name, capacity });
-  document.getElementById('input-room-name').value = '';
+  if (nameInput) nameInput.value = '';
   renderRooms();
 }
 
@@ -192,6 +221,7 @@ function deleteRoom(id) {
 
 function renderUsers() {
   const tbody = document.getElementById('tbody-users');
+  if (!tbody) return;
   tbody.innerHTML = '';
   dbFallback.users.forEach(u => {
     const className = dbFallback.classes.find(c => c.id === u.class_id)?.name || '-';
@@ -218,9 +248,9 @@ function deleteUser(id) {
   }
 }
 
-// CSV IMPORT ENGINE
 function triggerImportCSV() {
-  document.getElementById('csv-file-input').click();
+  const fileInput = document.getElementById('csv-file-input');
+  if (fileInput) fileInput.click();
 }
 
 function importUsersCSV(event) {
@@ -229,19 +259,17 @@ function importUsersCSV(event) {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    const text = e.target.result;
-    const lines = text.split('\n');
+    const lines = e.target.result.split('\n');
     let imported = 0;
 
-    // Format CSV: username,password,full_name,role,class_name,room_name,exam_number
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       const [username, password, full_name, role, className, roomName, exam_number] = line.split(',');
 
       if (username && password && role) {
-        const cls = dbFallback.classes.find(c => c.name.toLowerCase() === (className||'').trim().toLowerCase());
-        const rm = dbFallback.rooms.find(r => r.name.toLowerCase() === (roomName||'').trim().toLowerCase());
+        const cls = dbFallback.classes.find(c => c.name.toLowerCase() === (className || '').trim().toLowerCase());
+        const rm = dbFallback.rooms.find(r => r.name.toLowerCase() === (roomName || '').trim().toLowerCase());
 
         dbFallback.users.push({
           id: Date.now() + i,
@@ -264,6 +292,7 @@ function importUsersCSV(event) {
 
 function renderSessions() {
   const tbody = document.getElementById('tbody-sessions');
+  if (!tbody) return;
   tbody.innerHTML = '';
   dbFallback.sessions.forEach(s => {
     const exam = dbFallback.exams.find(e => e.id === s.exam_id);
@@ -306,15 +335,17 @@ function generateRandomToken() {
 // ==========================================
 function renderProctorView() {
   const room = dbFallback.rooms.find(r => r.id === currentUser.room_id) || dbFallback.rooms[0];
-  document.getElementById('proctor-room-info').innerText = `Ruang: ${room ? room.name : '-'}`;
+  const infoEl = document.getElementById('proctor-room-info');
+  if (infoEl) infoEl.innerText = `Ruang: ${room ? room.name : '-'}`;
 
   const session = dbFallback.sessions.find(s => s.room_id === room?.id && s.status === 'active');
   currentExamSession = session || dbFallback.sessions[0];
 
-  document.getElementById('proctor-token-display').innerText = currentExamSession ? currentExamSession.token : 'TIDAK ADA';
+  const tokenEl = document.getElementById('proctor-token-display');
+  if (tokenEl) tokenEl.innerText = currentExamSession ? currentExamSession.token : 'TIDAK ADA';
 
-  // Render Mahasiswa di Ruangan Pengawas
   const tbody = document.getElementById('tbody-proctor-students');
+  if (!tbody) return;
   tbody.innerHTML = '';
   const students = dbFallback.users.filter(u => u.role === 'student' && u.room_id === (room ? room.id : null));
 
@@ -334,34 +365,44 @@ function renderProctorView() {
 function proctorRefreshToken() {
   if (currentExamSession) {
     currentExamSession.token = generateRandomToken();
-    document.getElementById('proctor-token-display').innerText = currentExamSession.token;
+    const tokenEl = document.getElementById('proctor-token-display');
+    if (tokenEl) tokenEl.innerText = currentExamSession.token;
   }
 }
 
 // ==========================================
-// STUDENT MODULE & REAL-TIME TIMER
+// STUDENT MODULE
 // ==========================================
 function renderStudentView() {
   const activeExam = dbFallback.exams[0];
-  document.getElementById('student-exam-name').innerText = activeExam.title + ` (${activeExam.duration_minutes} Menit)`;
-  document.getElementById('student-token-screen').style.display = 'block';
-  document.getElementById('student-exam-screen').style.display = 'none';
+  const examNameEl = document.getElementById('student-exam-name');
+  if (examNameEl) examNameEl.innerText = activeExam.title + ` (${activeExam.duration_minutes} Menit)`;
+  
+  const tokenScreen = document.getElementById('student-token-screen');
+  const examScreen = document.getElementById('student-exam-screen');
+  if (tokenScreen) tokenScreen.style.display = 'block';
+  if (examScreen) examScreen.style.display = 'none';
 }
 
 function startStudentExam() {
-  const inputToken = document.getElementById('input-exam-token').value.trim().toUpperCase();
+  const tokenInput = document.getElementById('input-exam-token');
+  const inputToken = tokenInput ? tokenInput.value.trim().toUpperCase() : '';
   const session = dbFallback.sessions.find(s => s.room_id === currentUser.room_id) || dbFallback.sessions[0];
 
   if (!inputToken || inputToken !== session.token) {
     return alert('Token ujian tidak valid atau belum dirilis oleh pengawas!');
   }
 
-  document.getElementById('student-token-screen').style.display = 'none';
-  document.getElementById('student-exam-screen').style.display = 'block';
-  document.getElementById('cbt-exam-title').innerText = dbFallback.exams[0].title;
-  document.getElementById('cbt-student-name').innerText = `Peserta: ${currentUser.full_name} (${currentUser.exam_number || currentUser.username})`;
+  const tokenScreen = document.getElementById('student-token-screen');
+  const examScreen = document.getElementById('student-exam-screen');
+  if (tokenScreen) tokenScreen.style.display = 'none';
+  if (examScreen) examScreen.style.display = 'block';
 
-  // Start Countdown Timer
+  const examTitle = document.getElementById('cbt-exam-title');
+  const studentName = document.getElementById('cbt-student-name');
+  if (examTitle) examTitle.innerText = dbFallback.exams[0].title;
+  if (studentName) studentName.innerText = `Peserta: ${currentUser.full_name} (${currentUser.exam_number || currentUser.username})`;
+
   const durationSeconds = dbFallback.exams[0].duration_minutes * 60;
   runExamCountdown(durationSeconds);
 }
@@ -370,6 +411,8 @@ function runExamCountdown(totalSeconds) {
   let remaining = totalSeconds;
   const clock = document.getElementById('cbt-timer-clock');
 
+  if (activeSessionTimer) clearInterval(activeSessionTimer);
+
   activeSessionTimer = setInterval(() => {
     remaining--;
 
@@ -377,8 +420,10 @@ function runExamCountdown(totalSeconds) {
     const minutes = Math.floor((remaining % 3600) / 60);
     const seconds = remaining % 60;
 
-    clock.innerText = 
-      `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    if (clock) {
+      clock.innerText = 
+        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
 
     if (remaining <= 0) {
       clearInterval(activeSessionTimer);
@@ -395,10 +440,11 @@ function finishStudentExam() {
 }
 
 // ==========================================
-// PRINT MODULE (KARTU & DAFTAR HADIR)
+// PRINT MODULE
 // ==========================================
 function populatePrintOptions() {
   const select = document.getElementById('select-print-room');
+  if (!select) return;
   select.innerHTML = '<option value="">-- Pilih Ruang --</option>';
   dbFallback.rooms.forEach(r => {
     select.innerHTML += `<option value="${r.id}">${r.name}</option>`;
@@ -406,8 +452,11 @@ function populatePrintOptions() {
 }
 
 function previewPrintData() {
-  const roomId = parseInt(document.getElementById('select-print-room').value);
+  const select = document.getElementById('select-print-room');
+  const roomId = select ? parseInt(select.value) : null;
   const container = document.getElementById('print-preview-container');
+  if (!container) return;
+
   if (!roomId) {
     container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 2rem;">Pilih ruang untuk melihat pratinjau dokumen cetak</div>';
     return;
@@ -431,16 +480,17 @@ function previewPrintData() {
 }
 
 function printDocument(type) {
-  const roomId = parseInt(document.getElementById('select-print-room').value);
+  const select = document.getElementById('select-print-room');
+  const roomId = select ? parseInt(select.value) : null;
   if (!roomId) return alert('Silakan pilih ruang ujian terlebih dahulu!');
 
   const room = dbFallback.rooms.find(r => r.id === roomId);
   const students = dbFallback.users.filter(u => u.role === 'student' && u.room_id === roomId);
   const printSection = document.getElementById('print-section');
+  if (!printSection) return;
   printSection.innerHTML = '';
 
   if (type === 'attendance') {
-    // Format Daftar Hadir / Presensi Ruangan
     printSection.innerHTML = `
       <div style="padding: 2rem;">
         <h2 style="text-align: center; margin-bottom: 0.25rem;">DAFTAR HADIR PESERTA UJIAN BERBASIS KOMPUTER (CBT)</h2>
@@ -470,7 +520,6 @@ function printDocument(type) {
       </div>
     `;
   } else if (type === 'cards') {
-    // Format Cetak Kartu Peserta
     let cardsHtml = '<div style="padding: 1rem;">';
     students.forEach(s => {
       cardsHtml += `
