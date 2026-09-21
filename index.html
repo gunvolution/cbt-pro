@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CBT Pro — Manajemen Ujian & Token</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Supabase JS Client v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="brand-title">
+      <span>📝</span> CBT-Pro System
+    </div>
+    <div id="auth-actions" class="user-badge" style="display: none;">
+      <span id="current-user-info" style="font-size: 0.875rem;"></span>
+      <span id="current-role-badge" class="role-tag"></span>
+      <button class="btn btn-outline btn-sm" onclick="logout()">Keluar</button>
+    </div>
+  </header>
+
+  <!-- APP ROOT -->
+  <main id="app">
+    
+    <!-- 1. LOGIN SCREEN -->
+    <section id="view-login" class="login-wrap">
+      <div class="login-card">
+        <h2 style="margin-bottom: 0.5rem; text-align: center;">Masuk Sistem CBT</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-bottom: 1.5rem;">
+          Pilih portal login sesuai peran Anda
+        </p>
+
+        <form id="form-login" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-username">Username / No. Peserta</label>
+            <input type="text" id="login-username" class="form-control" placeholder="Contoh: admin / pengawas01 / 2026001" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Masuk Portal</button>
+        </form>
+
+        <div style="margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 0.75rem; border-radius: 6px;">
+          <strong>Akun Bawaan Demo:</strong><br>
+          • Admin: <code>admin</code> / <code>admin123</code><br>
+          • Pengawas: <code>pengawas01</code> / <code>pass123</code><br>
+          • Siswa: <code>2026001</code> / <code>siswa123</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ADMIN DASHBOARD -->
+    <section id="view-admin" class="container" style="display: none;">
+      <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchAdminTab('classes-rooms')">Kelas & Ruang</button>
+        <button class="tab-btn" onclick="switchAdminTab('users-mgmt')">Siswa & Pengawas</button>
+        <button class="tab-btn" onclick="switchAdminTab('schedule-mgmt')">Jadwal & Sesi</button>
+        <button class="tab-btn" onclick="switchAdminTab('print-center')">Cetak Kartu & Absensi</button>
+      </div>
+
+      <!-- Tab: Kelas & Ruang -->
+      <div id="tab-classes-rooms" class="admin-tab-content">
+        <div class="grid-2">
+          <!-- Kelas -->
+          <div class="card">
+            <h3>Daftar Kelas</h3>
+            <div style="display: flex; gap: 0.5rem; margin: 1rem 0;">
+              <input type="text" id="input-class-name" class="form-control" placeholder="Nama Kelas (Contoh: X-MIPA-3)">
+              <button class="btn btn-primary" onclick="addClass()">Tambah</button>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead><tr><th>No</th><th>Kelas</th><th>Aksi</th></tr></thead>
+                <tbody id="tbody-classes"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Ruang -->
+          <div class="card">
+            <h3>Daftar Ruang</h3>
+            <div style="display: flex; gap: 0.5rem; margin: 1rem 0;">
+              <input type="text" id="input-room-name" class="form-control" placeholder="Nama Ruang (Contoh: LAB-03)">
+              <input type="number" id="input-room-capacity" class="form-control" placeholder="Kapasitas" style="width: 100px;" value="30">
+              <button class="btn btn-primary" onclick="addRoom()">Tambah</button>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead><tr><th>No</th><th>Nama Ruang</th><th>Kapasitas</th><th>Aksi</th></tr></thead>
+                <tbody id="tbody-rooms"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Siswa & Pengawas -->
+      <div id="tab-users-mgmt" class="admin-tab-content" style="display: none;">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+            <h3>Data Siswa & Pengawas</h3>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-outline" onclick="triggerImportCSV()">📥 Impor CSV</button>
+              <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="importUsersCSV(event)">
+              <button class="btn btn-primary" onclick="openAddUserModal()">+ Tambah Manual</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>No. Peserta / User</th>
+                  <th>Nama Lengkap</th>
+                  <th>Role</th>
+                  <th>Kelas</th>
+                  <th>Ruang</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-users"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Jadwal & Sesi -->
+      <div id="tab-schedule-mgmt" class="admin-tab-content" style="display: none;">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Jadwal Mata Uji & Sesi Ruang</h3>
+            <button class="btn btn-primary" onclick="openCreateSessionModal()">+ Buat Sesi Baru</button>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mata Uji</th>
+                  <th>Sesi</th>
+                  <th>Ruang</th>
+                  <th>Token Aktif</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-sessions"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Cetak Kartu & Absensi -->
+      <div id="tab-print-center" class="admin-tab-content" style="display: none;">
+        <div class="card no-print">
+          <h3>Pusat Cetak Dokumen CBT</h3>
+          <div class="grid-2" style="margin-top: 1rem;">
+            <div>
+              <label>Pilih Ruang untuk Absensi / Kartu:</label>
+              <select id="select-print-room" class="form-control" onchange="previewPrintData()">
+                <option value="">-- Pilih Ruang --</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+              <button class="btn btn-primary" onclick="printDocument('attendance')">🖨️ Cetak Daftar Hadir</button>
+              <button class="btn btn-success" onclick="printDocument('cards')">🖨️ Cetak Kartu Peserta</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="print-preview-container" class="card">
+          <div style="color: var(--text-muted); text-align: center; padding: 2rem;">Pilih ruang untuk melihat pratinjau dokumen cetak</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. PROCTOR DASHBOARD -->
+    <section id="view-proctor" class="container" style="display: none;">
+      <div class="card">
+        <h2>Panel Pengawas Ruang</h2>
+        <p id="proctor-room-info" style="color: var(--text-muted); margin-bottom: 1.5rem;"></p>
+        
+        <div class="token-card">
+          <p style="font-size: 0.9rem; text-transform: uppercase;">Token Ujian Ruang Aktif</p>
+          <div class="token-big" id="proctor-token-display">------</div>
+          <p style="font-size: 0.8rem; margin-bottom: 1rem; color: #94a3b8;">Bagikan token kepada siswa saat waktu ujian dimulai.</p>
+          <button class="btn btn-primary" onclick="proctorRefreshToken()">🔄 Refresh Token Baru</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Peserta di Ruang Ini</h3>
+        <div class="table-responsive" style="margin-top: 1rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>No. Peserta</th>
+                <th>Nama Siswa</th>
+                <th>Kelas</th>
+                <th>Status Ujian</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-proctor-students"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. STUDENT CBT INTERFACE -->
+    <section id="view-student" class="container" style="display: none;">
+      
+      <!-- Sesi Belum Mulai / Masukkan Token -->
+      <div id="student-token-screen" class="card" style="max-width: 500px; margin: 2rem auto; text-align: center;">
+        <h2>Konfirmasi Ujian</h2>
+        <p id="student-exam-name" style="margin: 0.5rem 0 1.5rem; font-weight: 600; color: var(--primary);"></p>
+        
+        <div class="form-group" style="text-align: left;">
+          <label>Masukkan Token Ujian (Diberikan Pengawas):</label>
+          <input type="text" id="input-exam-token" class="form-control" style="text-transform: uppercase; font-size: 1.5rem; letter-spacing: 4px; text-align: center;" placeholder="ABCDEF" maxlength="10">
+        </div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="startStudentExam()">Mulai Kerjakan Ujian</button>
+      </div>
+
+      <!-- Layar Lembar CBT Siswa -->
+      <div id="student-exam-screen" style="display: none;">
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 id="cbt-exam-title">Ujian Aktif</h3>
+            <span id="cbt-student-name" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+          </div>
+          <div class="cbt-timer" id="cbt-timer-clock">00:00:00</div>
+        </div>
+
+        <div class="card">
+          <h4>Soal Simulator CBT</h4>
+          <p style="margin: 1.5rem 0;">Ini adalah simulasi lembar kerja Computer Based Test dengan sinkronisasi waktu real-time.</p>
+          <div class="form-group">
+            <label style="display: block; margin-bottom: 0.5rem;"><input type="radio" name="ans" checked> Pilihan Jawaban A</label>
+            <label style="display: block; margin-bottom: 0.5rem;"><input type="radio" name="ans"> Pilihan Jawaban B</label>
+            <label style="display: block; margin-bottom: 0.5rem;"><input type="radio" name="ans"> Pilihan Jawaban C</label>
+            <label style="display: block; margin-bottom: 0.5rem;"><input type="radio" name="ans"> Pilihan Jawaban D</label>
+          </div>
+          <button class="btn btn-danger" onclick="finishStudentExam()">Selesai & Kumpulkan Ujian</button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- PRINT WRAPPER FOR PDF / CETAK FISIK -->
+  <div id="print-section"></div>
+
+  <!-- SCRIPT -->
+  <script src="js/app.js"></script>
+</body>
+</html>
