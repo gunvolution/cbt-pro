@@ -4,8 +4,8 @@
 
 // 1. SUPABASE CLIENT INITIALIZATION
 // Catatan: Ganti placeholder ini dengan project Supabase milik Anda.
-const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://imsbttuspulpxmavlyop.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_jQP1zqYtScbWVhhQWl0lAQ_Tm6x5Zno";
 
 const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
