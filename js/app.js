@@ -40,54 +40,76 @@ let dbFallback = {
 };
 
 // ==========================================
-// AUTH CONTROLLER
 // ==========================================
-function handleLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value.trim();
+// AUTH CONTROLLER (REVISED & ROBUST)
+// ==========================================
 
-  // Verifikasi Pengguna
-  const user = dbFallback.users.find(u => u.username === username && u.password === password);
-  if (!user) {
-    alert('Username atau Password salah!');
-    return;
+function handleLogin(e) {
+  if (e && e.preventDefault) {
+    e.preventDefault();
   }
 
+  const usernameInput = document.getElementById('login-username');
+  const passwordInput = document.getElementById('login-password');
+
+  if (!usernameInput || !passwordInput) {
+    alert('Elemen form login tidak ditemukan!');
+    return false;
+  }
+
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!username || !password) {
+    alert('Mohon isi Username dan Password terlebih dahulu.');
+    return false;
+  }
+
+  // Cari user pada data lokal/fallback
+  const user = dbFallback.users.find(
+    u => u.username.toLowerCase() === username.toLowerCase() && u.password === password
+  );
+
+  if (!user) {
+    alert('Gagal Masuk: Username atau Password tidak cocok dengan data demo.');
+    return false;
+  }
+
+  // Set pengguna aktif
   currentUser = user;
   setupSessionView();
+  return false;
 }
 
 function setupSessionView() {
-  document.getElementById('view-login').style.display = 'none';
-  const actions = document.getElementById('auth-actions');
-  actions.style.display = 'flex';
-  document.getElementById('current-user-info').innerText = currentUser.full_name;
-  document.getElementById('current-role-badge').innerText = currentUser.role;
+  // Sembunyikan form login
+  const viewLogin = document.getElementById('view-login');
+  if (viewLogin) viewLogin.style.display = 'none';
 
+  // Tampilkan navigasi akun
+  const actions = document.getElementById('auth-actions');
+  if (actions) actions.style.display = 'flex';
+
+  const infoEl = document.getElementById('current-user-info');
+  const roleEl = document.getElementById('current-role-badge');
+  if (infoEl) infoEl.innerText = currentUser.full_name;
+  if (roleEl) roleEl.innerText = currentUser.role.toUpperCase();
+
+  // Alihkan tampilan berdasarkan peran
   if (currentUser.role === 'admin') {
-    document.getElementById('view-admin').style.display = 'block';
+    const vAdmin = document.getElementById('view-admin');
+    if (vAdmin) vAdmin.style.display = 'block';
     renderAdminData();
   } else if (currentUser.role === 'proctor') {
-    document.getElementById('view-proctor').style.display = 'block';
+    const vProctor = document.getElementById('view-proctor');
+    if (vProctor) vProctor.style.display = 'block';
     renderProctorView();
   } else if (currentUser.role === 'student') {
-    document.getElementById('view-student').style.display = 'block';
+    const vStudent = document.getElementById('view-student');
+    if (vStudent) vStudent.style.display = 'block';
     renderStudentView();
   }
 }
-
-function logout() {
-  currentUser = null;
-  if (activeSessionTimer) clearInterval(activeSessionTimer);
-  document.getElementById('view-admin').style.display = 'none';
-  document.getElementById('view-proctor').style.display = 'none';
-  document.getElementById('view-student').style.display = 'none';
-  document.getElementById('auth-actions').style.display = 'none';
-  document.getElementById('view-login').style.display = 'flex';
-  document.getElementById('form-login').reset();
-}
-
 // ==========================================
 // ADMIN MODULE
 // ==========================================
