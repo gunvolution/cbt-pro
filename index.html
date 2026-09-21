@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT Pro — Manajemen Ujian & Token</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>CBT Pro — Manajemen Ujian, Guru & Token</title>
   <style>
-    /* Inline Fallback Styling agar tampilan tetap rapi jika style.css tertunda */
     :root {
       --primary: #1e40af;
       --primary-hover: #1d4ed8;
@@ -15,6 +13,7 @@
       --border: #e2e8f0;
       --text: #1e293b;
       --text-muted: #64748b;
+      --teacher-color: #7c3aed;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -22,18 +21,24 @@
     .brand-title { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
     .container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
-    .btn { padding: 0.6rem 1.2rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
+    .btn { padding: 0.55rem 1.1rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
     .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-teacher { background: var(--teacher-color); color: #fff; }
     .btn-danger { background: #ef4444; color: #fff; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f1f5f9; }
     .form-group { margin-bottom: 1rem; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
-    .form-control { width: 100%; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid var(--border); }
+    .form-control { width: 100%; padding: 0.65rem 0.75rem; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
+    .form-control:focus { outline: 2px solid var(--primary); }
     .table-responsive { width: 100%; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin-top: 0.5rem; }
     th, td { padding: 0.75rem; border-bottom: 1px solid var(--border); text-align: left; }
     th { background: #f1f5f9; color: var(--text-muted); }
     .role-tag { background: #dbeafe; color: #1e40af; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; }
+    .role-teacher { background: #ede9fe; color: #6d28d9; }
+    .question-box { border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
   </style>
 </head>
 <body>
@@ -53,27 +58,28 @@
     
     <!-- 1. LOGIN SCREEN -->
     <section id="view-login" style="display: flex; min-height: 80vh; align-items: center; justify-content: center; padding: 1rem;">
-      <div class="card" style="width: 100%; max-width: 400px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+      <div class="card" style="width: 100%; max-width: 420px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <h2 style="margin-bottom: 0.5rem; text-align: center;">Masuk Sistem CBT</h2>
         <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-bottom: 1.5rem;">
-          Pilih portal login sesuai peran Anda
+          Portal terintegrasi Admin, Guru, Pengawas, & Siswa
         </p>
 
         <form id="form-login">
           <div class="form-group">
-            <label for="login-username">Username / No. Peserta</label>
-            <input type="text" id="login-username" class="form-control" placeholder="admin / pengawas01 / 2026001" autocomplete="username" required>
+            <label for="login-username">Username / ID Pengguna</label>
+            <input type="text" id="login-username" class="form-control" placeholder="admin / guru01 / pengawas01 / 2026001" autocomplete="username" required>
           </div>
           <div class="form-group">
             <label for="login-password">Password</label>
             <input type="password" id="login-password" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
           </div>
-          <button type="submit" id="btn-submit-login" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Masuk Portal</button>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Masuk Portal</button>
         </form>
 
-        <div style="margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 0.75rem; border-radius: 6px;">
-          <strong>Akun Bawaan Demo:</strong><br>
+        <div style="margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 0.75rem; border-radius: 6px; line-height: 1.6;">
+          <strong>Kredensial Demo:</strong><br>
           • <strong>Admin:</strong> <code>admin</code> / <code>admin123</code><br>
+          • <strong>Guru:</strong> <code>guru01</code> / <code>guru123</code><br>
           • <strong>Pengawas:</strong> <code>pengawas01</code> / <code>pass123</code><br>
           • <strong>Siswa:</strong> <code>2026001</code> / <code>siswa123</code>
         </div>
@@ -83,19 +89,18 @@
     <!-- 2. ADMIN DASHBOARD -->
     <section id="view-admin" class="container" style="display: none;">
       <div style="display: flex; gap: 0.5rem; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; overflow-x: auto;">
-        <button class="btn btn-outline admin-tab-btn" onclick="openAdminTab('classes-rooms')">Kelas & Ruang</button>
-        <button class="btn btn-outline admin-tab-btn" onclick="openAdminTab('users-mgmt')">Siswa & Pengawas</button>
-        <button class="btn btn-outline admin-tab-btn" onclick="openAdminTab('schedule-mgmt')">Jadwal & Sesi</button>
-        <button class="btn btn-outline admin-tab-btn" onclick="openAdminTab('print-center')">Cetak Dokumen</button>
+        <button class="btn btn-outline" onclick="openAdminTab('classes-rooms')">Kelas & Ruang</button>
+        <button class="btn btn-outline" onclick="openAdminTab('users-mgmt')">Pengguna (Siswa/Guru/Pengawas)</button>
+        <button class="btn btn-outline" onclick="openAdminTab('schedule-mgmt')">Jadwal & Sesi</button>
+        <button class="btn btn-outline" onclick="openAdminTab('print-center')">Cetak Dokumen</button>
       </div>
 
-      <!-- Tab: Kelas & Ruang -->
       <div id="tab-classes-rooms" class="admin-tab-pane">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
           <div class="card">
             <h3>Daftar Kelas</h3>
             <div style="display: flex; gap: 0.5rem; margin: 1rem 0;">
-              <input type="text" id="inp-class-name" class="form-control" placeholder="Nama Kelas (misal: X-MIPA-3)">
+              <input type="text" id="inp-class-name" class="form-control" placeholder="Nama Kelas">
               <button class="btn btn-primary" onclick="adminAddClass()">Tambah</button>
             </div>
             <div class="table-responsive">
@@ -122,26 +127,22 @@
         </div>
       </div>
 
-      <!-- Tab: Siswa & Pengawas -->
       <div id="tab-users-mgmt" class="admin-tab-pane" style="display: none;">
         <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-            <h3>Data Siswa & Pengawas</h3>
-            <div>
-              <button class="btn btn-outline" onclick="document.getElementById('file-csv').click()">📥 Impor CSV</button>
-              <input type="file" id="file-csv" accept=".csv" style="display: none;" onchange="adminImportCSV(event)">
-            </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Manajemen Pengguna</h3>
+            <button class="btn btn-outline" onclick="document.getElementById('file-csv').click()">📥 Impor CSV</button>
+            <input type="file" id="file-csv" accept=".csv" style="display: none;" onchange="adminImportCSV(event)">
           </div>
           <div class="table-responsive">
             <table>
-              <thead><tr><th>User / No. Peserta</th><th>Nama</th><th>Peran</th><th>Kelas</th><th>Ruang</th><th>Aksi</th></tr></thead>
+              <thead><tr><th>Username</th><th>Nama Lengkap</th><th>Peran</th><th>Kelas</th><th>Ruang</th><th>Aksi</th></tr></thead>
               <tbody id="tb-users"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Tab: Jadwal & Token -->
       <div id="tab-schedule-mgmt" class="admin-tab-pane" style="display: none;">
         <div class="card">
           <h3>Jadwal Ujian & Sesi Ruang</h3>
@@ -154,23 +155,78 @@
         </div>
       </div>
 
-      <!-- Tab: Cetak -->
       <div id="tab-print-center" class="admin-tab-pane" style="display: none;">
         <div class="card">
-          <h3>Cetak Absensi & Kartu Ujian</h3>
+          <h3>Pusat Cetak Dokumen</h3>
           <div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: center; flex-wrap: wrap;">
             <select id="sel-print-room" class="form-control" style="max-width: 250px;"></select>
-            <button class="btn btn-primary" onclick="adminPrintDoc('attendance')">🖨️ Cetak Absensi</button>
-            <button class="btn btn-outline" onclick="adminPrintDoc('cards')">🖨️ Cetak Kartu</button>
+            <button class="btn btn-primary" onclick="adminPrintDoc('attendance')">🖨️ Cetak Presensi Ruang</button>
+            <button class="btn btn-outline" onclick="adminPrintDoc('cards')">🖨️ Cetak Kartu Peserta</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 3. PROCTOR DASHBOARD -->
+    <!-- 3. TEACHER DASHBOARD (PORTAL GURU & BANK SOAL) -->
+    <section id="view-teacher" class="container" style="display: none;">
+      <div class="card" style="border-left: 4px solid var(--teacher-color);">
+        <h2>Portal Guru — Bank Soal CBT</h2>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">Kelola pertanyaan dan pilihan ganda untuk mata ujian.</p>
+        
+        <div class="form-group" style="max-width: 350px;">
+          <label>Pilih Mata Ujian:</label>
+          <select id="teacher-select-exam" class="form-control" onchange="renderTeacherQuestions()"></select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>+ Tambah Pertanyaan Baru</h3>
+        <form id="form-add-question" onsubmit="teacherAddQuestion(event)" style="margin-top: 1rem;">
+          <div class="form-group">
+            <label>Teks Pertanyaan / Soal:</label>
+            <textarea id="q-text" class="form-control" rows="3" placeholder="Tuliskan soal ujian di sini..." required></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label>Pilihan A:</label>
+              <input type="text" id="q-opt-a" class="form-control" placeholder="Jawaban A" required>
+            </div>
+            <div class="form-group">
+              <label>Pilihan B:</label>
+              <input type="text" id="q-opt-b" class="form-control" placeholder="Jawaban B" required>
+            </div>
+            <div class="form-group">
+              <label>Pilihan C:</label>
+              <input type="text" id="q-opt-c" class="form-control" placeholder="Jawaban C" required>
+            </div>
+            <div class="form-group">
+              <label>Pilihan D:</label>
+              <input type="text" id="q-opt-d" class="form-control" placeholder="Jawaban D" required>
+            </div>
+          </div>
+          <div class="form-group" style="max-width: 250px;">
+            <label>Kunci Jawaban Benar:</label>
+            <select id="q-correct" class="form-control" required>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-teacher">💾 Simpan Pertanyaan ke Bank Soal</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Soal pada Ujian Ini</h3>
+        <div id="teacher-questions-list" style="margin-top: 1rem;"></div>
+      </div>
+    </section>
+
+    <!-- 4. PROCTOR DASHBOARD -->
     <section id="view-proctor" class="container" style="display: none;">
       <div class="card" style="text-align: center; background: #0f172a; color: #fff;">
-        <p style="color: #94a3b8; font-size: 0.9rem;">TOKEN UJIAN AKTIF (RUANG ANDA)</p>
+        <p style="color: #94a3b8; font-size: 0.9rem;">TOKEN UJIAN AKTIF</p>
         <div id="proc-token-box" style="font-size: 3rem; font-family: monospace; font-weight: 800; color: #38bdf8; margin: 0.5rem 0;">------</div>
         <button class="btn btn-primary" onclick="procRefreshToken()">🔄 Refresh Token Baru</button>
       </div>
@@ -178,20 +234,20 @@
         <h3>Daftar Siswa di Ruang Anda</h3>
         <div class="table-responsive">
           <table>
-            <thead><tr><th>No. Peserta</th><th>Nama Lengkap</th><th>Kelas</th><th>Status</th></tr></thead>
+            <thead><tr><th>No. Peserta</th><th>Nama Siswa</th><th>Kelas</th><th>Status</th></tr></thead>
             <tbody id="tb-proc-students"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 4. STUDENT CBT INTERFACE -->
+    <!-- 5. STUDENT CBT INTERFACE -->
     <section id="view-student" class="container" style="display: none;">
       <div id="box-student-token" class="card" style="max-width: 450px; margin: 2rem auto; text-align: center;">
         <h2>Konfirmasi Token Ujian</h2>
         <p id="student-exam-title" style="margin: 0.5rem 0 1.5rem; color: var(--primary); font-weight: 600;"></p>
         <div class="form-group">
-          <input type="text" id="inp-student-token" class="form-control" placeholder="MASUKKAN TOKEN" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px; text-transform: uppercase;">
+          <input type="text" id="inp-student-token" class="form-control" placeholder="TOKEN" style="text-align: center; font-size: 1.5rem; letter-spacing: 4px; text-transform: uppercase;">
         </div>
         <button class="btn btn-primary" style="width: 100%;" onclick="studentStartExam()">Mulai Kerjakan Ujian</button>
       </div>
@@ -199,55 +255,59 @@
       <div id="box-student-exam" style="display: none;">
         <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
           <div>
-            <h3>Simulasi Lembar Ujian CBT</h3>
+            <h3 id="cbt-running-exam-title">Lembar Ujian CBT</h3>
             <span id="student-display-name" style="color: var(--text-muted);"></span>
           </div>
           <div id="cbt-timer" style="background: #ef4444; color: #fff; font-size: 1.3rem; font-weight: 700; padding: 0.4rem 0.8rem; border-radius: 6px; font-family: monospace;">00:00:00</div>
         </div>
+
         <div class="card">
-          <p style="margin-bottom: 1rem;">Soal No. 1: Berapakah hasil dari 25 × 4 + 50?</p>
-          <label style="display: block; margin-bottom: 0.5rem;"><input type="radio" name="opt" checked> A. 150</label>
-          <label style="display: block; margin-bottom: 0.5rem;"><input type="radio" name="opt"> B. 200</label>
-          <label style="display: block; margin-bottom: 0.5rem;"><input type="radio" name="opt"> C. 100</label>
-          <button class="btn btn-danger" style="margin-top: 1rem;" onclick="studentSubmitExam()">Selesai & Kumpulkan</button>
+          <div id="student-dynamic-questions"></div>
+          <button class="btn btn-danger" style="margin-top: 1rem; width: 100%; padding: 0.8rem;" onclick="studentSubmitExam()">Selesai & Kumpulkan Lembar Jawaban</button>
         </div>
       </div>
     </section>
 
   </main>
 
-  <div id="print-area"></div>
-
-  <!-- CORE LOGIC SECURELY EMBEDDED -->
   <script>
-    // DATA DEMO IN-MEMORY
+    // DATABASE LOCAL DEMO DENGAN DUKUNGAN BANK SOAL
     const appDB = {
       classes: [{ id: 1, name: 'X-MIPA-1' }, { id: 2, name: 'XI-IPS-1' }],
       rooms: [{ id: 1, name: 'LAB-KOMP-01', capacity: 30 }],
       users: [
         { id: 1, username: 'admin', password: 'admin123', full_name: 'Administrator CBT', role: 'admin', class_id: null, room_id: null, exam_number: null },
-        { id: 2, username: 'pengawas01', password: 'pass123', full_name: 'Budi Santoso, M.Pd', role: 'proctor', class_id: null, room_id: 1, exam_number: null },
-        { id: 3, username: '2026001', password: 'siswa123', full_name: 'Ahmad Farhan', role: 'student', class_id: 1, room_id: 1, exam_number: 'CBT-001' }
+        { id: 2, username: 'guru01', password: 'guru123', full_name: 'Siti Aminah, S.Pd (Guru)', role: 'teacher', class_id: null, room_id: null, exam_number: null },
+        { id: 3, username: 'pengawas01', password: 'pass123', full_name: 'Budi Santoso, M.Pd', role: 'proctor', class_id: null, room_id: 1, exam_number: null },
+        { id: 4, username: '2026001', password: 'siswa123', full_name: 'Ahmad Farhan', role: 'student', class_id: 1, room_id: 1, exam_number: 'CBT-001' }
       ],
-      exams: [{ id: 1, title: 'Penilaian Tengah Semester - Matematika', duration_minutes: 60 }],
-      sessions: [{ id: 1, exam_id: 1, room_id: 1, session_name: 'Sesi 1 Pagi', token: 'WXYZ89', status: 'active' }]
+      exams: [
+        { id: 1, title: 'Penilaian Tengah Semester - Matematika', duration_minutes: 60 }
+      ],
+      sessions: [
+        { id: 1, exam_id: 1, room_id: 1, session_name: 'Sesi 1 Pagi', token: 'WXYZ89', status: 'active' }
+      ],
+      questions: [
+        { id: 1, exam_id: 1, text: 'Berapakah hasil dari operasi 15 x 4 + 40?', optA: '90', optB: '100', optC: '110', optD: '120', correct: 'B' },
+        { id: 2, exam_id: 1, text: 'Sebuah segitiga memiliki alas 10 cm dan tinggi 8 cm. Berapakah luasnya?', optA: '40 cm²', optB: '80 cm²', optC: '20 cm²', optD: '50 cm²', correct: 'A' }
+      ]
     };
 
     let authUser = null;
     let timerInterval = null;
 
-    // EVENT LISTENER LOGIN FORM
+    // AUTH CONTROLLER
     document.addEventListener('DOMContentLoaded', () => {
-      const loginForm = document.getElementById('form-login');
-      if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+      const form = document.getElementById('form-login');
+      if (form) {
+        form.addEventListener('submit', (e) => {
           e.preventDefault();
           const userInp = document.getElementById('login-username').value.trim().toLowerCase();
           const passInp = document.getElementById('login-password').value.trim();
 
           const found = appDB.users.find(u => u.username.toLowerCase() === userInp && u.password === passInp);
           if (!found) {
-            alert('Username atau Password salah!\n\nAkun Demo:\nAdmin: admin / admin123\nPengawas: pengawas01 / pass123\nSiswa: 2026001 / siswa123');
+            alert('Username atau Password salah!\n\nGunakan:\nAdmin: admin / admin123\nGuru: guru01 / guru123\nPengawas: pengawas01 / pass123\nSiswa: 2026001 / siswa123');
             return;
           }
 
@@ -255,11 +315,17 @@
           document.getElementById('view-login').style.display = 'none';
           document.getElementById('auth-actions').style.display = 'flex';
           document.getElementById('current-user-info').innerText = authUser.full_name;
-          document.getElementById('current-role-badge').innerText = authUser.role.toUpperCase();
+          
+          const roleBadge = document.getElementById('current-role-badge');
+          roleBadge.innerText = authUser.role.toUpperCase();
+          if (authUser.role === 'teacher') roleBadge.classList.add('role-teacher');
 
           if (authUser.role === 'admin') {
             document.getElementById('view-admin').style.display = 'block';
             openAdminTab('classes-rooms');
+          } else if (authUser.role === 'teacher') {
+            document.getElementById('view-teacher').style.display = 'block';
+            initTeacherView();
           } else if (authUser.role === 'proctor') {
             document.getElementById('view-proctor').style.display = 'block';
             renderProctorView();
@@ -274,18 +340,79 @@
     function appLogout() {
       authUser = null;
       if (timerInterval) clearInterval(timerInterval);
-      ['view-admin', 'view-proctor', 'view-student'].forEach(id => document.getElementById(id).style.display = 'none');
+      ['view-admin', 'view-teacher', 'view-proctor', 'view-student'].forEach(id => document.getElementById(id).style.display = 'none');
       document.getElementById('auth-actions').style.display = 'none';
       document.getElementById('view-login').style.display = 'flex';
       document.getElementById('form-login').reset();
     }
 
-    // ADMIN TABS & CRUD
+    // TEACHER MODULE (BANK SOAL)
+    function initTeacherView() {
+      const sel = document.getElementById('teacher-select-exam');
+      sel.innerHTML = appDB.exams.map(e => `<option value="${e.id}">${e.title}</option>`).join('');
+      renderTeacherQuestions();
+    }
+
+    function renderTeacherQuestions() {
+      const examId = parseInt(document.getElementById('teacher-select-exam').value);
+      const list = document.getElementById('teacher-questions-list');
+      const questions = appDB.questions.filter(q => q.exam_id === examId);
+
+      if (questions.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted); font-style:italic;">Belum ada pertanyaan pada ujian ini. Silakan tambahkan pertanyaan di atas.</p>';
+        return;
+      }
+
+      list.innerHTML = questions.map((q, idx) => `
+        <div class="question-box">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <strong>Soal No. ${idx + 1}</strong>
+            <button class="btn btn-danger" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="teacherDeleteQuestion(${q.id})">Hapus</button>
+          </div>
+          <p style="margin: 0.5rem 0;">${q.text}</p>
+          <div style="font-size:0.85rem; color:var(--text-muted); display:grid; grid-template-columns:1fr 1fr; gap:0.3rem;">
+            <div>A: ${q.optA}</div>
+            <div>B: ${q.optB}</div>
+            <div>C: ${q.optC}</div>
+            <div>D: ${q.optD}</div>
+          </div>
+          <p style="margin-top:0.4rem; font-size:0.85rem; font-weight:600; color:var(--primary);">Kunci Jawaban: ${q.correct}</p>
+        </div>
+      `).join('');
+    }
+
+    function teacherAddQuestion(e) {
+      e.preventDefault();
+      const examId = parseInt(document.getElementById('teacher-select-exam').value);
+      const text = document.getElementById('q-text').value.trim();
+      const optA = document.getElementById('q-opt-a').value.trim();
+      const optB = document.getElementById('q-opt-b').value.trim();
+      const optC = document.getElementById('q-opt-c').value.trim();
+      const optD = document.getElementById('q-opt-d').value.trim();
+      const correct = document.getElementById('q-correct').value;
+
+      appDB.questions.push({
+        id: Date.now(),
+        exam_id: examId,
+        text, optA, optB, optC, optD, correct
+      });
+
+      document.getElementById('form-add-question').reset();
+      alert('Pertanyaan berhasil disimpan ke bank soal!');
+      renderTeacherQuestions();
+    }
+
+    function teacherDeleteQuestion(id) {
+      if (confirm('Hapus pertanyaan ini dari bank soal?')) {
+        appDB.questions = appDB.questions.filter(q => q.id !== id);
+        renderTeacherQuestions();
+      }
+    }
+
+    // ADMIN MODULE
     function openAdminTab(tabId) {
       document.querySelectorAll('.admin-tab-pane').forEach(el => el.style.display = 'none');
-      const target = document.getElementById(`tab-${tabId}`);
-      if (target) target.style.display = 'block';
-
+      document.getElementById(`tab-${tabId}`).style.display = 'block';
       if (tabId === 'classes-rooms') { renderClasses(); renderRooms(); }
       if (tabId === 'users-mgmt') renderUsers();
       if (tabId === 'schedule-mgmt') renderSessions();
@@ -293,8 +420,7 @@
     }
 
     function renderClasses() {
-      const tb = document.getElementById('tb-classes');
-      tb.innerHTML = appDB.classes.map((c, i) => `
+      document.getElementById('tb-classes').innerHTML = appDB.classes.map((c, i) => `
         <tr><td>${i + 1}</td><td><strong>${c.name}</strong></td><td><button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="delClass(${c.id})">Hapus</button></td></tr>
       `).join('');
     }
@@ -315,8 +441,7 @@
     }
 
     function renderRooms() {
-      const tb = document.getElementById('tb-rooms');
-      tb.innerHTML = appDB.rooms.map((r, i) => `
+      document.getElementById('tb-rooms').innerHTML = appDB.rooms.map((r, i) => `
         <tr><td>${i + 1}</td><td><strong>${r.name}</strong></td><td>${r.capacity}</td><td><button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="delRoom(${r.id})">Hapus</button></td></tr>
       `).join('');
     }
@@ -338,12 +463,11 @@
     }
 
     function renderUsers() {
-      const tb = document.getElementById('tb-users');
-      tb.innerHTML = appDB.users.map(u => `
+      document.getElementById('tb-users').innerHTML = appDB.users.map(u => `
         <tr>
           <td>${u.exam_number || u.username}</td>
           <td><strong>${u.full_name}</strong></td>
-          <td><span class="role-tag">${u.role}</span></td>
+          <td><span class="role-tag ${u.role === 'teacher' ? 'role-teacher' : ''}">${u.role}</span></td>
           <td>${appDB.classes.find(c => c.id === u.class_id)?.name || '-'}</td>
           <td>${appDB.rooms.find(r => r.id === u.room_id)?.name || '-'}</td>
           <td>${u.role !== 'admin' ? `<button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.75rem;" onclick="delUser(${u.id})">Hapus</button>` : '-'}</td>
@@ -352,18 +476,18 @@
     }
 
     function delUser(id) {
-      if (confirm('Hapus data pengguna?')) {
+      if (confirm('Hapus pengguna?')) {
         appDB.users = appDB.users.filter(u => u.id !== id);
         renderUsers();
       }
     }
 
-    function adminImportCSV(event) {
-      const file = event.target.files[0];
+    function adminImportCSV(e) {
+      const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(e) {
-        const lines = e.target.result.split('\n');
+      reader.onload = function(evt) {
+        const lines = evt.target.result.split('\n');
         let count = 0;
         for (let i = 1; i < lines.length; i++) {
           const l = lines[i].trim();
@@ -377,7 +501,7 @@
               username: username.trim(),
               password: password.trim(),
               full_name: full_name ? full_name.trim() : username.trim(),
-              role: (role ? role.trim() : 'student'),
+              role: role ? role.trim() : 'student',
               class_id: cls ? cls.id : null,
               room_id: rm ? rm.id : null,
               exam_number: exam_number ? exam_number.trim() : null
@@ -392,8 +516,7 @@
     }
 
     function renderSessions() {
-      const tb = document.getElementById('tb-sessions');
-      tb.innerHTML = appDB.sessions.map(s => {
+      document.getElementById('tb-sessions').innerHTML = appDB.sessions.map(s => {
         const ex = appDB.exams.find(e => e.id === s.exam_id);
         const rm = appDB.rooms.find(r => r.id === s.room_id);
         return `
@@ -419,8 +542,7 @@
     }
 
     function populatePrintRooms() {
-      const sel = document.getElementById('sel-print-room');
-      sel.innerHTML = appDB.rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+      document.getElementById('sel-print-room').innerHTML = appDB.rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
     }
 
     function adminPrintDoc(type) {
@@ -428,8 +550,7 @@
       const room = appDB.rooms.find(r => r.id === rid);
       const students = appDB.users.filter(u => u.role === 'student' && u.room_id === rid);
       const win = window.open('', '', 'width=800,height=600');
-      
-      let html = `<html><head><title>Cetak CBT</title><style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #000;padding:8px;text-align:left;} .card{border:2px dashed #000;padding:12px;margin:10px;display:inline-block;width:45%;}</style></head><body>`;
+      let html = `<html><head><title>Cetak CBT</title><style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #000;padding:8px;text-align:left;} .card{border:2px dashed #000;padding:12px;margin:10px;display:inline-block;width:45%;}</style></head><body>`;
       if (type === 'attendance') {
         html += `<h2 style="text-align:center;">DAFTAR HADIR PESERTA CBT - ${room ? room.name : ''}</h2><table><tr><th>No</th><th>No. Peserta</th><th>Nama Siswa</th><th>Tanda Tangan</th></tr>`;
         students.forEach((s, idx) => {
@@ -452,9 +573,8 @@
     function renderProctorView() {
       const s = appDB.sessions[0];
       document.getElementById('proc-token-box').innerText = s ? s.token : 'TIDAK ADA';
-      const tb = document.getElementById('tb-proc-students');
       const students = appDB.users.filter(u => u.role === 'student');
-      tb.innerHTML = students.map(st => `
+      document.getElementById('tb-proc-students').innerHTML = students.map(st => `
         <tr><td>${st.exam_number || st.username}</td><td>${st.full_name}</td><td>${appDB.classes.find(c => c.id === st.class_id)?.name || '-'}</td><td><span class="role-tag" style="background:#dcfce7;color:#15803d;">Siap</span></td></tr>
       `).join('');
     }
@@ -467,7 +587,7 @@
       }
     }
 
-    // STUDENT MODULE
+    // STUDENT MODULE (MEMBACA SOAL GURU SECARA DINAMIS)
     function renderStudentView() {
       document.getElementById('student-exam-title').innerText = appDB.exams[0].title;
       document.getElementById('box-student-token').style.display = 'block';
@@ -476,16 +596,38 @@
 
     function studentStartExam() {
       const val = document.getElementById('inp-student-token').value.trim().toUpperCase();
-      const currentToken = appDB.sessions[0].token;
-      if (val !== currentToken) {
+      if (val !== appDB.sessions[0].token) {
         alert('Token salah! Minta token terkini kepada pengawas.');
         return;
       }
+
+      const activeExam = appDB.exams[0];
+      const examQuestions = appDB.questions.filter(q => q.exam_id === activeExam.id);
+
+      if (examQuestions.length === 0) {
+        alert('Guru belum menambahkan soal untuk ujian ini!');
+        return;
+      }
+
       document.getElementById('box-student-token').style.display = 'none';
       document.getElementById('box-student-exam').style.display = 'block';
       document.getElementById('student-display-name').innerText = `Peserta: ${authUser.full_name}`;
+      document.getElementById('cbt-running-exam-title').innerText = activeExam.title;
 
-      let timeLeft = appDB.exams[0].duration_minutes * 60;
+      // Render soal yang telah dibuat oleh Guru
+      const questionsContainer = document.getElementById('student-dynamic-questions');
+      questionsContainer.innerHTML = examQuestions.map((q, idx) => `
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+          <p style="font-weight:600; margin-bottom: 0.5rem;">Soal No. ${idx + 1}: ${q.text}</p>
+          <label style="display:block; margin-bottom:0.3rem;"><input type="radio" name="q_${q.id}" value="A"> A. ${q.optA}</label>
+          <label style="display:block; margin-bottom:0.3rem;"><input type="radio" name="q_${q.id}" value="B"> B. ${q.optB}</label>
+          <label style="display:block; margin-bottom:0.3rem;"><input type="radio" name="q_${q.id}" value="C"> C. ${q.optC}</label>
+          <label style="display:block; margin-bottom:0.3rem;"><input type="radio" name="q_${q.id}" value="D"> D. ${q.optD}</label>
+        </div>
+      `).join('');
+
+      // Countdown Timer
+      let timeLeft = activeExam.duration_minutes * 60;
       const clock = document.getElementById('cbt-timer');
       timerInterval = setInterval(() => {
         timeLeft--;
@@ -495,16 +637,16 @@
         clock.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
-          alert('Waktu ujian habis!');
+          alert('Waktu ujian habis! Lembar ujian otomatis dikumpulkan.');
           appLogout();
         }
       }, 1000);
     }
 
     function studentSubmitExam() {
-      if (confirm('Kumpulkan lembar jawaban ujian sekarang?')) {
+      if (confirm('Kumpulkan seluruh lembar jawaban sekarang?')) {
         if (timerInterval) clearInterval(timerInterval);
-        alert('Ujian selesai dikerjakan dan berhasil dikirim.');
+        alert('Ujian selesai dan jawaban berhasil dikirim!');
         appLogout();
       }
     }
